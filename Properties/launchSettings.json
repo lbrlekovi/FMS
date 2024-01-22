@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "FoodManagmentSystem_Device": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7117",
+      "launchBrowser": false
+    }
+  }
+}
