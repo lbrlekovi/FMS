@@ -16,17 +16,21 @@ router.use(bodyParser.json());
 
 router.post('/', async (req, res) => {
   try {
-    const { newValue } = req.body;
+    const { foodIndex, newValue } = req.body; // Extracting foodIndex from the request body
+
+    // Define food items and their corresponding column names in the database
+    const foodItems = ['Jabuka', 'Orah']; // Add more food items as needed
+    const columnName = 'Kolicina'; // Assuming the column name for quantity is the same for all food items
 
     let pool = await sql.connect(dbConfig);
-    let result = await pool.request().query('SELECT Kolicina FROM [dbo].[Hrana]');
-    let currentKolicina = result.recordset[0].Kolicina;
-    
+    let result = await pool.request().query(`SELECT ${columnName} FROM [dbo].[Hrana] WHERE Ime = '${foodItems[foodIndex]}'`);
+    let currentKolicina = result.recordset[0][columnName];
+
     if (currentKolicina + newValue < 0) {
       return res.status(400).send({ error: 'Update would result in Kolicina being less than 0' });
     }
 
-    await pool.request().query(`UPDATE [dbo].[Hrana] SET Kolicina = Kolicina + ${newValue}`);
+    await pool.request().query(`UPDATE [dbo].[Hrana] SET ${columnName} = ${columnName} + ${newValue} WHERE Ime = '${foodItems[foodIndex]}'`);
     res.status(200).send({ message: 'Update successful' });
   } catch (error) {
     console.error('Error updating database:', error);
