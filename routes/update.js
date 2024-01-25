@@ -1,6 +1,5 @@
 const express = require('express');
-const router = express.Router(); // Use express.Router() to create a router
-
+const router = express.Router();
 const bodyParser = require('body-parser');
 const sql = require('mssql');
 const dbConfig = {
@@ -13,16 +12,21 @@ const dbConfig = {
   },
 };
 
-router.use(bodyParser.json()); // Use router.use() for middleware on this router
+router.use(bodyParser.json());
 
 router.post('/', async (req, res) => {
   try {
     const { newValue } = req.body;
 
     let pool = await sql.connect(dbConfig);
-    await pool.request()
-      .query(`UPDATE [dbo].[Hrana] SET Kolicina = Kolicina + ${newValue}`);
+    let result = await pool.request().query('SELECT Kolicina FROM [dbo].[Hrana]');
+    let currentKolicina = result.recordset[0].Kolicina;
+    
+    if (currentKolicina + newValue < 0) {
+      return res.status(400).send({ error: 'Update would result in Kolicina being less than 0' });
+    }
 
+    await pool.request().query(`UPDATE [dbo].[Hrana] SET Kolicina = Kolicina + ${newValue}`);
     res.status(200).send({ message: 'Update successful' });
   } catch (error) {
     console.error('Error updating database:', error);
@@ -30,4 +34,4 @@ router.post('/', async (req, res) => {
   }
 });
 
-module.exports = router; // Export the router, not the entire app
+module.exports = router;
