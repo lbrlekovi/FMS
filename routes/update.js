@@ -31,7 +31,11 @@ router.post('/', async (req, res) => {
     }
 
     await pool.request().query(`UPDATE [dbo].[Hrana] SET ${columnName} = ${columnName} + ${newValue} WHERE Ime = '${foodItems[foodIndex]}'`);
-    res.status(200).send({ message: 'Update successful' });
+    if (currentKolicina + newValue <= 10) {
+      res.status(201).send({ message: 'Update successful - Low resource warning' });
+    } else {
+      res.status(200).send({ message: 'Update successful' });
+    }
   } catch (error) {
     console.error('Error updating database:', error);
     res.status(500).send({ error: 'Internal Server Error' });
